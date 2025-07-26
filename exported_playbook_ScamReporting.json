@@ -1,0 +1,239 @@
+{
+  "playbook": {
+    "playbook": {
+      "displayName": "ScamReporting",
+      "goal": "Help users report and understand potential scams by collecting details about suspicious messages or incidents, analyzing them for scam patterns, and providing appropriate advice and reporting options in the user's preferred language.",
+      "steps": [ {
+        "text": "Initiate the report by asking the user to describe the suspicious message or incident in as much detail as possible."
+      }, {
+        "text": "Detect the user's preferred language from the `user_language` session parameter; default to 'en' if not provided."
+      }, {
+        "text": "Analyze the scam_description to determine the `scam_type` and `risk_level`:",
+        "steps": [ {
+          "text": "Examples of known scams:",
+          "steps": [ {
+            "text": "UPI QR code scam (e.g., 'scan to receive')"
+          }, {
+            "text": "KYC/account block scams (e.g., 'update your PAN/Aadhaar')"
+          }, {
+            "text": "Phishing scams (e.g., OTP requests or fake links)"
+          }, {
+            "text": "Loan scams (e.g., upfront processing fee)"
+          }, {
+            "text": "Job scams (e.g., fake interviews with registration fees)"
+          }, {
+            "text": "Government impersonation scams (e.g., fake RBI refund portals)"
+          } ]
+        }, {
+          "text": "Legitimate examples (likely safe):",
+          "steps": [ {
+            "text": "Salary credit notifications, login OTPs, account alerts"
+          } ]
+        } ]
+      }, {
+        "text": "Based on classification, assign:",
+        "steps": [ {
+          "text": "scam_type: (e.g., 'Phishing', 'Loan Scam', 'Not a Scam')"
+        }, {
+          "text": "risk_level: 'High', 'Medium', or 'Low'"
+        }, {
+          "text": "Provide a brief explanation, and an actionable advice on what the user can do in such case."
+        } ]
+      }, {
+        "text": "Respond in the user's selected language using a friendly and calm tone."
+      }, {
+        "text": "Ask the user: 'Would you like to report another suspicious message, or end the call?'"
+      }, {
+        "text": "If the user wants to report another, loop back and prompt for a new scam_description."
+      }, {
+        "text": "If the user wants to end, gracefully conclude and save the `scam_type` and `risk_level` and `session_id`."
+      }, {
+        "text": "CALL ${TOOL:701db48c-90a3-4f58-ab85-a52606a30f37}, and execute to log the output"
+      } ],
+      "tools": [ "701db48c-90a3-4f58-ab85-a52606a30f37" ],
+      "inputParameterDefinitions": [ {
+        "name": "user_language",
+        "description": "the language in which the user asks the question",
+        "typeSchema": {
+          "inlineSchema": {
+            "type": "STRING"
+          }
+        },
+        "parameterType": {
+          "name": "user_language",
+          "openapiJsonSchema": {
+            "type": "string"
+          },
+          "parsedSchema": {
+            "inlineSchema": {
+              "type": "STRING"
+            }
+          }
+        }
+      }, {
+        "name": "scam_description",
+        "description": "user describes the suspicious message incident etc",
+        "typeSchema": {
+          "inlineSchema": {
+            "type": "STRING"
+          }
+        },
+        "parameterType": {
+          "name": "scam_description",
+          "openapiJsonSchema": {
+            "type": "string"
+          },
+          "parsedSchema": {
+            "inlineSchema": {
+              "type": "STRING"
+            }
+          }
+        }
+      } ],
+      "outputParameterDefinitions": [ {
+        "name": "scam_type",
+        "description": "scam_type",
+        "typeSchema": {
+          "inlineSchema": {
+            "type": "STRING"
+          }
+        },
+        "parameterType": {
+          "name": "scam_type",
+          "openapiJsonSchema": {
+            "type": "string"
+          },
+          "parsedSchema": {
+            "inlineSchema": {
+              "type": "STRING"
+            }
+          }
+        }
+      }, {
+        "name": "risk_level",
+        "description": "risk",
+        "typeSchema": {
+          "inlineSchema": {
+            "type": "STRING"
+          }
+        },
+        "parameterType": {
+          "name": "risk_level",
+          "openapiJsonSchema": {
+            "type": "string"
+          },
+          "parsedSchema": {
+            "inlineSchema": {
+              "type": "STRING"
+            }
+          }
+        }
+      } ],
+      "etag": "687e8805",
+      "playbookId": "1b017fbb-0ef5-481b-a32a-9713d287b801",
+      "tokenCount": 453,
+      "ragSettings": {
+      
+      },
+      "handlers": [ {
+        "eventHandler": {
+          "event": "before playbook end",
+          "fulfillment": {
+            "nextActionOverride": {
+              "toolUse": {
+                "tool": "701db48c-90a3-4f58-ab85-a52606a30f37",
+                "action": "logScamReport",
+                "inputActionParameters": {
+                  "requestBody": {
+                    "risk_level": "",
+                    "scam_type": "",
+                    "session_id": ""
+                  }
+                }
+              }
+            }
+          },
+          "condition": "$session.params.scam_type != null AND $session.params.risk_level != null"
+        }
+      } ],
+      "playbookType": "WORKFLOW",
+      "speechSettings": {
+        "endpointerSensitivity": 90,
+        "noSpeechTimeout": {
+          "seconds": 30
+        },
+        "models": [ {
+          "key": "hi",
+          "value": "phone_call"
+        } ]
+      },
+      "codeBlock": {
+        "code": "# 🧹 Text cleaning for IVR (symbol-free TTS)\r\ndef clean_text(text):\r\n    # Remove everything except letters (Latin and Devanagari), digits, and basic punctuation\r\n    text = re.sub(r'[^\\w\\s.,!?₹₹\\u0900-\\u097F]', '', text, flags=re.UNICODE)  # Allow Hindi script\r\n    text = re.sub(r'\\s+', ' ', text)\r\n    return text.strip()\r\n\r\n# 🛠 Input handling\r\ndesc = (inputs.get(\"scam_description\") or \"\").strip().lower()\r\nlanguage = inputs.get(\"user_language\") or \"en\"\r\n\r\n# 🛡 Default values\r\nscam_type = \"Unknown\"\r\nrisk = \"Medium\"\r\n\r\n# 🗣️ Default messages\r\nscam_expl_en = \"This seems to be suspicious activity.\"\r\nscam_expl_hi = \"यह एक संदिग्ध गतिविधि लगती है।\"\r\n\r\nreal_case_en = \"Please stay alert when dealing with messages about money or accounts.\"\r\nreal_case_hi = \"पैसे या खातों से संबंधित संदेशों से निपटते समय सतर्क रहें।\"\r\n\r\naction_en = \"Avoid clicking any links or sharing personal information.\"\r\naction_hi = \"किसी भी लिंक पर क्लिक करने या व्यक्तिगत जानकारी साझा करने से बचें।\"\r\n\r\n# ✅ Safe messages\r\nsafe_keywords = [\r\n    \"salary credit\", \"emi paid\", \"otp for login\", \"registered login\",\r\n    \"transaction alert\", \"sms from bank\", \"your account was used\",\r\n    \"statement available\", \"balance update\",\r\n    \"क्रेडिट\", \"सैलरी\", \"खाता अपडेट\", \"खाता बैलेंस\", \"बैंक से ओटीपी\"\r\n]\r\n\r\n# 🚨 Scam categories — now with Hindi phrases included\r\nif any(kw in desc for kw in safe_keywords):\r\n    scam_type = \"Not a Scam\"\r\n    risk = \"Low\"\r\n    scam_expl_en = \"This appears to be a genuine message from your bank or service provider.\"\r\n    scam_expl_hi = \"यह आपके बैंक या सेवा प्रदाता का सामान्य संदेश लगता है।\"\r\n    real_case_en = \"Banks often send alerts for valid activities like login or salary credit.\"\r\n    real_case_hi = \"बैंक अक्सर लॉगिन या वेतन जैसी वैध गतिविधियों के लिए अलर्ट भेजते हैं।\"\r\n    action_en = \"If you're unsure, contact your bank for confirmation.\"\r\n    action_hi = \"अगर संदेह हो, तो पुष्टि के लिए अपने बैंक से संपर्क करें।\"\r\n\r\nelif any(kw in desc for kw in [\"qr code\", \"scan\", \"refund\", \"payment\", \"receive\", \"क्यूआर कोड\", \"स्कैन\", \"रिफंड\"]):\r\n    scam_type = \"UPI QR Code Scam\"\r\n    risk = \"High\"\r\n    scam_expl_en = \"Scammers trick people into scanning a QR code to send money instead of receiving it.\"\r\n    scam_expl_hi = \"धोखेबाज़ आपको क्यूआर कोड स्कैन करवाते हैं जिससे पैसा चला जाता है।\"\r\n    real_case_en = \"One person scanned a QR for a refund and lost 12,000 rupees instantly.\"\r\n    real_case_hi = \"एक व्यक्ति ने रिफंड के लिए क्यूआर स्कैन किया और 12,000 रुपये कट गए।\"\r\n    action_en = \"Never scan QR codes to receive money. Use only trusted apps.\"\r\n    action_hi = \"पैसे पाने के लिए कभी भी क्यूआर स्कैन न करें। केवल भरोसेमंद ऐप्स का उपयोग करें।\"\r\n\r\nelif any(kw in desc for kw in [\"kyc\", \"account block\", \"pan\", \"aadhaar\", \"update\", \"केवाईसी\", \"पैन\", \"आधार\", \"खाता बंद\"]):\r\n    scam_type = \"KYC Scam\"\r\n    risk = \"High\"\r\n    scam_expl_en = \"Scammers send fake messages about KYC expiry to steal your details.\"\r\n    scam_expl_hi = \"धोखेबाज़ KYC समाप्ति के फर्जी संदेश भेजते हैं और जानकारी चुरा लेते हैं।\"\r\n    real_case_en = \"Someone lost 15,000 rupees after filling a fake KYC form.\"\r\n    real_case_hi = \"किसी ने फर्जी KYC फॉर्म भरा और 15,000 रुपये गंवा दिए।\"\r\n    action_en = \"Your bank never asks for details via SMS. Always verify directly.\"\r\n    action_hi = \"आपका बैंक कभी भी SMS से जानकारी नहीं मांगता। हमेशा सीधे पुष्टि करें।\"\r\n\r\nelif any(kw in desc for kw in [\"loan\", \"interest\", \"guaranteed\", \"disbursement\", \"upfront\", \"ऋण\", \"ब्याज\", \"एडवांस\"]):\r\n    scam_type = \"Loan Scam\"\r\n    risk = \"Medium\"\r\n    scam_expl_en = \"Fake loan agents ask for fees or documents before giving any loan.\"\r\n    scam_expl_hi = \"फर्जी एजेंट ऋण देने से पहले दस्तावेज़ या शुल्क मांगते हैं।\"\r\n    real_case_en = \"One victim paid 5,000 rupees for loan processing and got nothing.\"\r\n    real_case_hi = \"एक व्यक्ति ने 5,000 रुपये प्रोसेसिंग के दिए लेकिन ऋण नहीं मिला।\"\r\n    action_en = \"Do not pay fees in advance. Verify with RBI-listed lenders.\"\r\n    action_hi = \"पहले शुल्क न दें। हमेशा RBI से मान्यता प्राप्त संस्थान से संपर्क करें।\"\r\n\r\nelif any(kw in desc for kw in [\"job\", \"training\", \"registration\", \"placement\", \"नौकरी\", \"रजिस्ट्रेशन\", \"प्रशिक्षण\"]):\r\n    scam_type = \"Job Scam\"\r\n    risk = \"Medium\"\r\n    scam_expl_en = \"Scammers offer fake jobs and ask for money upfront.\"\r\n    scam_expl_hi = \"धोखेबाज़ नकली नौकरियां देकर पहले पैसे मांगते हैं।\"\r\n    real_case_en = \"Someone paid 3,000 rupees for a job interview and got no reply.\"\r\n    real_case_hi = \"एक व्यक्ति ने 3,000 रुपये दिए और कोई उत्तर नहीं मिला।\"\r\n    action_en = \"Don't pay for job offers. Legit companies never charge applicants.\"\r\n    action_hi = \"नौकरी के लिए कभी भुगतान न करें। असली कंपनियाँ शुल्क नहीं लेतीं।\"\r\n\r\nelif any(kw in desc for kw in [\"otp\", \"password\", \"click here\", \"link\", \"verify\", \"ओटीपी\", \"पासवर्ड\", \"क्लिक\", \"लिंक\"]):\r\n    scam_type = \"Phishing\"\r\n    risk = \"High\"\r\n    scam_expl_en = \"You might have received a fake link or message to steal your login details.\"\r\n    scam_expl_hi = \"आपको नकली लिंक या संदेश मिला हो सकता है जो आपकी जानकारी चुराए।\"\r\n    real_case_en = \"One person entered OTP on a fake site and lost access.\"\r\n    real_case_hi = \"एक व्यक्ति ने नकली साइट पर OTP डाला और खाता खो दिया।\"\r\n    action_en = \"Never click suspicious links. Type URLs manually or contact your bank.\"\r\n    action_hi = \"अनजान लिंक पर क्लिक न करें। वेबसाइट खुद खोलें या बैंक से संपर्क करें।\"\r\n\r\nelif any(kw in desc for kw in [\"rbi\", \"govt\", \"refund portal\", \"scheme\", \"insurance bonus\", \"सरकार\", \"आरबीआई\", \"योजना\", \"रिफंड पोर्टल\"]):\r\n    scam_type = \"Fake Government Message\"\r\n    risk = \"High\"\r\n    scam_expl_en = \"Fraudsters pretend to be from RBI or govt and offer fake refunds or bonuses.\"\r\n    scam_expl_hi = \"धोखेबाज़ RBI या सरकार के नाम से फर्जी लाभ का दावा करते हैं।\"\r\n    real_case_en = \"One person lost 8,000 rupees after entering details on a fake refund site.\"\r\n    real_case_hi = \"किसी ने नकली साइट पर जानकारी दी और 8,000 रुपये गंवा दिए।\"\r\n    action_en = \"Never trust messages pretending to be from RBI or govt.\"\r\n    action_hi = \"RBI या सरकार के नाम से आए संदेशों पर भरोसा न करें।\"\r\n\r\n# 🎤 Build final IVR-friendly voice response\r\nif language == \"hi\":\r\n    full_response = f\"{scam_expl_hi} {real_case_hi} {action_hi} कृपया सतर्क रहें। क्या आप कोई और संदिग्ध संदेश रिपोर्ट करना चाहेंगे, या कॉल समाप्त करना चाहेंगे?\"\r\nelse:\r\n    if scam_type == \"Not a Scam\":\r\n        full_response = f\"{scam_expl_en} {real_case_en} {action_en} Would you like to report another suspicious message, or end the call?\"\r\n    else:\r\n        full_response = f\"{scam_expl_en} {real_case_en} {action_en} Please stay cautious. Would you like to report another suspicious message, or end the call?\"\r\n\r\n# 🧹 Clean for TTS\r\nfull_response = clean_text(full_response)\r\n\r\n# ✅ Final output\r\nreturn {\r\n    \"response\": full_response,\r\n    \"risk_level\": risk,\r\n    \"scam_type\": scam_type\r\n}"
+      },
+      "speechAdaptationSettings": {
+      
+      }
+    },
+    "tools": [ {
+      "id": "701db48c-90a3-4f58-ab85-a52606a30f37",
+      "displayName": "Webhook",
+      "description": "This tool logs the scam_type, risk_level, and session_id into a Cloud SQL database when a playbook concludes.",
+      "openApiTool": {
+        "textSchema": "openapi: 3.0.0\ninfo:\n  title: Finwise Scam Logger API\n  version: 1.0.0\n  description: 'Logs scam_type, risk_level, and session_id to Cloud SQL'\nservers:\n  - url: 'https://scamlog-244103233396.asia-south1.run.app'\npaths:\n  /:\n    post:\n      summary: Log scam report details\n      operationId: logScamReport\n      requestBody:\n        required: true\n        content:\n          application/json:\n            schema:\n              type: object\n              required:\n                - scam_type\n                - risk_level\n                - session_id\n              properties:\n                scam_type:\n                  type: string\n                  description: The type of scam reported\n                risk_level:\n                  type: string\n                  description: The risk level of the reported scam\n                session_id:\n                  type: string\n                  description: The Dialogflow session ID\n      responses:\n        '200':\n          description: Log successful\n          content:\n            application/json:\n              schema:\n                type: object\n                properties:\n                  success:\n                    type: boolean\n                  message:\n                    type: string\n        '500':\n          description: Internal Server Error\n",
+        "authentication": {
+          "serviceAgentAuthConfig": {
+            "serviceAgentAuth": "ID_TOKEN"
+          }
+        },
+        "ignoreUnknownFields": true
+      },
+      "actions": [ "6e9dbf20-9c8e-4e5b-b8ca-20a2c8dc5695" ],
+      "etag": "687e8512"
+    } ],
+    "examples": [ {
+      "key": "8358c8f6-2d4b-455f-9050-4935dcdcc28b",
+      "value": {
+        "actions": [ {
+          "agentUtterance": {
+            "text": "नमस्ते! मुझे बताएं कि वह संदिग्ध संदेश या घटना क्या थी ताकि मैं आपकी मदद कर सकूं. जितना हो सके उतना विस्तार से बताएं.\n"
+          }
+        }, {
+          "userUtterance": {
+            "text": "मुझे बैंक से कॉल आया और मेरा CVV नंबर मांगा गया"
+          }
+        }, {
+          "agentUtterance": {
+            "text": "आपके द्वारा बताए गए विवरण के आधार पर, यह एक फ़िशिंग घोटाला लगता है और इसमें जोखिम का स्तर बहुत अधिक है. बैंक कभी भी CVV नंबर नहीं मांगते हैं. अपना CVV नंबर किसी को भी न दें.\n\nमेरा सुझाव है कि आप तुरंत अपने बैंक को इस घटना की सूचना दें और अपने कार्ड को ब्लॉक करवा दें.\n\nक्या आप कोई अन्य संदिग्ध संदेश रिपोर्ट करना चाहेंगे, या कॉल समाप्त करना चाहेंगे?\n"
+          }
+        }, {
+          "userUtterance": {
+            "text": "मुझे नौकरी के लिए कॉल आया लेकिन वे मुझे नौकरी देने के लिए पैसे मांग रहे हैं"
+          }
+        }, {
+          "agentUtterance": {
+            "text": "आपके द्वारा बताए गए विवरण के आधार पर, यह एक नौकरी घोटाला लगता है और इसमें जोखिम का स्तर बहुत अधिक है. वास्तविक कंपनियां नौकरी देने के लिए कभी भी पैसे नहीं मांगती हैं.\n\nमेरा सुझाव है कि आप पुलिस को इस घटना की सूचना दें.\n\nक्या आप कोई अन्य संदिग्ध संदेश रिपोर्ट करना चाहेंगे, या कॉल समाप्त करना चाहेंगे?\n"
+          }
+        } ],
+        "playbookInput": {
+          "precedingConversationSummary": "start of converstation where user_language is \"hi\"",
+          "actionParameters": {
+          
+          }
+        },
+        "playbookOutput": {
+          "executionSummary": "end conversation",
+          "actionParameters": {
+          
+          }
+        },
+        "id": "8358c8f6-2d4b-455f-9050-4935dcdcc28b",
+        "etag": "687b78c6",
+        "displayName": "hindiflow",
+        "retrievalStrategy": "STATIC",
+        "tokenCount": 435,
+        "conversationState": "OUTPUT_STATE_OK",
+        "languageCode": "hi"
+      }
+    } ]
+  }
+}

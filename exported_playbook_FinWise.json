@@ -1,0 +1,388 @@
+{
+  "playbook": {
+    "playbook": {
+      "displayName": "FinWise",
+      "goal": "Answer user's financial questions using Gemini AI and respond in their selected language.",
+      "steps": [ {
+        "text": "Wait for the user to ask a financial question using their voice."
+      }, {
+        "text": "Use the `user_language` session parameter to determine the user's preferred language."
+      }, {
+        "text": "Use the `custom_query` parameter as the user's question."
+      }, {
+        "text": "Answer the user's question using Gemini or Datastore, based on availability."
+      }, {
+        "text": "Respond in the same language as specified in `user_language`.",
+        "steps": [ {
+          "text": "If `hi`, respond in Hindi."
+        }, {
+          "text": "If `en`, respond in English."
+        } ]
+      }, {
+        "text": "Keep the response descriptive, clear, and natural-sounding for voice output (avoid long paragraphs)."
+      }, {
+        "text": "At the end of the response, say:",
+        "steps": [ {
+          "text": "In English: “You can ask another question or say 'end call' to finish.”"
+        }, {
+          "text": "In Hindi: “आप अगला सवाल पूछ सकते हैं या कॉल समाप्त करने के लिए 'कॉल बंद करो' कह सकते हैं।”"
+        }, {
+          "text": "In Marathi: “तुम्ही पुढचा प्रश्न विचारू शकता किंवा कॉल समाप्त करण्यासाठी 'कॉल बंद करा' असे म्हणू शकता।”"
+        } ]
+      } ],
+      "tools": [ "4ecd7ebe-6d5a-4e12-b3ef-0e9d9facba3d" ],
+      "inputParameterDefinitions": [ {
+        "name": "user_language",
+        "description": "Language in which the question is asked",
+        "typeSchema": {
+          "inlineSchema": {
+            "type": "STRING"
+          }
+        },
+        "parameterType": {
+          "name": "user_language",
+          "openapiJsonSchema": {
+            "type": "string"
+          },
+          "parsedSchema": {
+            "inlineSchema": {
+              "type": "STRING"
+            }
+          }
+        }
+      }, {
+        "name": "custom_query",
+        "description": "Query of the end-user",
+        "typeSchema": {
+          "inlineSchema": {
+            "type": "STRING"
+          }
+        },
+        "parameterType": {
+          "name": "custom_query",
+          "openapiJsonSchema": {
+            "type": "string"
+          },
+          "parsedSchema": {
+            "inlineSchema": {
+              "type": "STRING"
+            }
+          }
+        }
+      } ],
+      "etag": "6875535d",
+      "playbookId": "00000000-0000-0000-0000-000000000000",
+      "tokenCount": 263,
+      "ragSettings": {
+        "enableRag": true,
+        "summaryAnswerOverrideType": "NON_BLOCKING_ANSWER"
+      },
+      "playbookType": "WORKFLOW",
+      "speechSettings": {
+        "endpointerSensitivity": 90,
+        "noSpeechTimeout": {
+          "seconds": 5
+        },
+        "models": [ {
+          "key": "en-in",
+          "value": "phone_call"
+        } ]
+      },
+      "codeBlock": {
+        "code": "if not inputs.query or inputs.query.strip() == \"\":\r\n    return \"\"  # Don’t respond unless user provides a query\r\n\r\nlanguage = inputs.user_language if \"user_language\" in inputs else \"en\"\r\nquery = inputs.query.strip()\r\n\r\nif language == \"hi\":\r\n    prompt = f\"आप एक वित्तीय सहायक हैं। हिंदी में उत्तर दें।\\nप्रश्न: {query}\\nउत्तर:\"\r\nelif language == \"mr\":\r\n    prompt = f\"तुम एक आर्थिक सहाय्यक आहात. मराठीत उत्तर द्या.\\nप्रश्न: {query}\\nउत्तर:\"\r\nelse:\r\n    prompt = f\"You are a financial assistant. Answer in English.\\nQuestion: {query}\\nAnswer:\"\r\n"
+      },
+      "speechAdaptationSettings": {
+      
+      },
+      "dtmfSettings": {
+        "enabled": true,
+        "customRule": {
+        
+        },
+        "interdigitTimeoutDuration": {
+        
+        },
+        "endpointingTimeoutDuration": {
+        
+        }
+      }
+    },
+    "tools": [ {
+      "id": "4ecd7ebe-6d5a-4e12-b3ef-0e9d9facba3d",
+      "displayName": "FineWiseData",
+      "etag": "686d72a1",
+      "dataStoreTool": {
+        "dataStoreConnections": [ {
+          "dataStoreType": "UNSTRUCTURED",
+          "dataStore": "projects/244103233396/locations/global/collections/default_collection/dataStores/finewise_1751118986197",
+          "documentProcessingMode": "DOCUMENTS",
+          "engineType": "CHAT_ENGINE",
+          "connectorConfig": {
+          
+          },
+          "createTime": {
+            "seconds": 1751118989,
+            "nanos": 482103000
+          },
+          "displayName": "FineWise",
+          "dialogflowAddTime": {
+            "seconds": 1751119574,
+            "nanos": 912000000
+          }
+        } ],
+        "models": {
+          "summarizationModel": {
+            "model": "gemini_20_flash_001"
+          },
+          "rewriterModel": {
+            "model": "default"
+          }
+        },
+        "fallbackPrompt": {
+        
+        },
+        "groundingSettings": {
+          "groundingConfidence": "LOW"
+        },
+        "payloadSettings": {
+        
+        },
+        "voiceModeSettings": {
+        
+        }
+      }
+    } ],
+    "examples": [ {
+      "key": "02ef9699-95bf-42d9-ad0b-b23b31adc70f",
+      "value": {
+        "actions": [ {
+          "agentUtterance": {
+            "text": "क्या सवाल है?\n"
+          }
+        }, {
+          "userUtterance": {
+            "text": "म्यूचुअल फंड क्या है"
+          }
+        }, {
+          "agentUtterance": {
+            "text": "मुझे माफ़ करना, मुझे लगा कि आप मुझसे हिंदी में बात कर रहे थे। म्यूचुअल फंड निवेशकों से पैसा इकट्ठा करते हैं और इक्विटी, ऋण या दोनों के संयोजन में निवेश करते हैं, जिसे पेशेवर रूप से प्रबंधित किया जाता है। बदले में, निवेशकों को म्यूचुअल फंड इकाइयां मिलती हैं जो प्रबंधन शुल्क कटौती के बाद फंड द्वारा अर्जित सामूहिक रिटर्न से लाभान्वित होती हैं। वे सेबी द्वारा विनियमित हैं।\n\nआप अगला सवाल पूछ सकते हैं या 'भाषा बदलो' कह सकते हैं।\n"
+          }
+        }, {
+          "userUtterance": {
+            "text": "फिक्स्ड डिपॉजिट क्या है?"
+          }
+        }, {
+          "agentUtterance": {
+            "text": "फिक्स्ड डिपॉजिट एक खाता है जिसमें एक निश्चित अवधि के अंत में ब्याज के साथ पैसे जमा किए जाते हैं और निकाले जाते हैं। बैंक जमा अपनी तरलता और सुरक्षा के लिए पसंद किए जाते हैं। यदि फिक्स्ड डिपॉजिट रसीद परिपक्व हो जाती है और भुगतान नहीं किया जाता है, तो राशि बचत खाते पर लागू ब्याज दर को आकर्षित करती है।"
+          }
+        } ],
+        "playbookInput": {
+          "precedingConversationSummary": "start",
+          "actionParameters": {
+          
+          }
+        },
+        "playbookOutput": {
+          "executionSummary": "end",
+          "actionParameters": {
+          
+          }
+        },
+        "id": "02ef9699-95bf-42d9-ad0b-b23b31adc70f",
+        "etag": "687001e4",
+        "displayName": "example",
+        "retrievalStrategy": "DEFAULT",
+        "tokenCount": 412,
+        "conversationState": "OUTPUT_STATE_OK",
+        "languageCode": "hi"
+      }
+    }, {
+      "key": "0d6d6f0c-157c-426f-96f7-0e380bcfea84",
+      "value": {
+        "actions": [ {
+          "userUtterance": {
+            "text": "hi"
+          }
+        }, {
+          "agentUtterance": {
+            "text": "Okay, I'm ready. I will respond to your questions to the best of my ability. What would you like to know?\n"
+          }
+        }, {
+          "userUtterance": {
+            "text": "what is SIP?"
+          }
+        }, {
+          "toolUse": {
+            "tool": "4ecd7ebe-6d5a-4e12-b3ef-0e9d9facba3d",
+            "action": "FineWiseData",
+            "inputActionParameters": {
+              "requestBody": {
+                "query": "what is SIP?",
+                "userMetadata": {
+                  "language": "hi"
+                }
+              }
+            },
+            "outputActionParameters": {
+              "200": {
+                "answer": "A systematic investment plan (SIP) allows you to invest even with very small amounts in mutual fund schemes on a monthly basis. Mutual funds collect money from many investors and invest the aggregate amount in the markets in a professional and transparent manner.",
+                "snippets": [ {
+                  "text": "higher risk. Besides, equity and debt, a combination of these instruments, like convertible debentures, preference shares are also issued to raise capital. If you have constraints like time, wherewithal, small amount etc. to invest in the market directly, Mutual Funds (MFs), which are regulated entities, provide an alternative avenue. They collect money from many investors and invest the aggregate amount in the markets in a professional and transparent manner. The returns from these investments net of management fees are available to you as a MF unit holder. MFs offer various schemes, like those investing only in equity or debt, index funds, gold funds, etc. to cater to risk appetite of various investors. Even with very small amounts, you can invest in MF schemes through monthly systematic investment plans (SIP). The institutions, players and mechanism that bring suppliers and users of capital together, is known as capital market. It allows people to do more with their savings by providing variety of assets thereby enhancing the wealth of investors who make the right choice. Simultaneously, it enables entrepreneurs to do more with their ideas and talent, facilitating capital formation. Thus capital market mobilizes savings and channelizes it, through securities, into preferred entrepreneurs. It is not that the providers of funds meet the user of and exchange funds for securities. It is because the securities offered by the users may not match the preference of the providers of funds. There are a large variety of intermediaries who bring the providers and user of funds together to facilitate the transactions. The market is supervised by SEBI. It ensures supply of quality securities and non-manipulated demand for them. It develops best market practices and takes enforcement actions against the miscreants. It essentially maintains discipline in the market so that the participants can undertake transaction safely. ****",
+                  "title": "Microsoft Word - introduction%20DGM%2020.12.2010[1].doc",
+                  "uri": "https://storage.cloud.google.com/finwise-pdf/beginner- mutual funds.pdf#page=8"
+                }, {
+                  "text": "90 Dear Asma, You are only 19, a student and thinking about investment. Good thinking lady! If you indeed start investing today, you have up to 40 years of productive life on your side to invest. I cannot imagine the amount of wealth you would build by investing for 40 years. Time is on your side. Now get the money too! How? Firstly, you are above 18 years of age, so you can independently manage all your investments. Consider this, you get Rs.1,000 allowance for your ‘wants’ (not all that you spend on are your needs). Now if you can find say Rs.500 (to start with) from that money—in a month or two or three, you can get going. Of course you would need a savings bank account to start with. If you do not have one in your name, then open one right away. Assuming you have a bank account, then your investment options with a starting sum of Rs.500 are listed below: 1. 50 units of a newly launched mutual fund from any reputed asset management company. Through a systematic investment plan (SIP) you can keep investing every month. 2. Demat account and at least 1 share of a well known ‘A’ list company (Yes you can buy a single share at a time. Then you can build more as you earn more) 3. Recurring deposit account (it earns more interest than a normal savings account) that allows you to invest amount as low as Rs.50 every month. Should you borrow to invest? The answer is—NO. Never invest money that is not yours and investable. Now the question remains how to find that Rs.500. You will have to figure that out. But if you ask my personal opinion, for a cause as good and great as investment, it makes sense to cut down your expenses from eating out, buying a new dress every month or even beauty care. What say? Get Set Invest! Mrs. Bharati Mrs. Bharati’s Common Money Sense Answers",
+                  "title": "I Can Do_RBI- financial planning",
+                  "uri": "https://storage.cloud.google.com/finwise-pdf/I Can Do_RBI- financial planning.pdf#page=90"
+                } ]
+              }
+            }
+          }
+        }, {
+          "agentUtterance": {
+            "text": "A systematic investment plan (SIP) allows you to invest even with very small amounts in mutual fund schemes on a monthly basis. Mutual funds collect money from many investors and invest the aggregate amount in the markets in a professional and transparent manner."
+          }
+        }, {
+          "userUtterance": {
+            "text": "okay thankyou"
+          }
+        } ],
+        "playbookInput": {
+          "precedingConversationSummary": "start",
+          "actionParameters": {
+          
+          }
+        },
+        "playbookOutput": {
+          "executionSummary": "end",
+          "actionParameters": {
+          
+          }
+        },
+        "id": "0d6d6f0c-157c-426f-96f7-0e380bcfea84",
+        "etag": "686ffa42",
+        "displayName": "example!",
+        "retrievalStrategy": "DEFAULT",
+        "tokenCount": 1235,
+        "conversationState": "OUTPUT_STATE_OK",
+        "languageCode": "en"
+      }
+    }, {
+      "key": "25a82851-2527-4d25-9559-5ae8fad41930",
+      "value": {
+        "actions": [ {
+          "userUtterance": {
+            "text": "एसआईपी क्या है?"
+          }
+        }, {
+          "agentUtterance": {
+            "text": "एसआईपी एक व्यवस्थित निवेश योजना है जो आपको हर महीने म्यूचुअल फंड योजनाओं में बहुत कम मात्रा में भी निवेश करने की अनुमति देती है। म्यूचुअल फंड कई निवेशकों से पैसा इकट्ठा करते हैं और कुल राशि को पेशेवर और पारदर्शी तरीके से बाजारों में निवेश करते हैं।\n\nआप अगला सवाल पूछ सकते हैं या 'भाषा बदलो' कह सकते हैं।\n"
+          }
+        } ],
+        "playbookInput": {
+          "precedingConversationSummary": "start",
+          "actionParameters": {
+          
+          }
+        },
+        "playbookOutput": {
+          "executionSummary": "end",
+          "actionParameters": {
+          
+          }
+        },
+        "id": "25a82851-2527-4d25-9559-5ae8fad41930",
+        "etag": "68700386",
+        "displayName": "enample4",
+        "retrievalStrategy": "DEFAULT",
+        "tokenCount": 192,
+        "conversationState": "OUTPUT_STATE_OK",
+        "languageCode": "hi"
+      }
+    }, {
+      "key": "69899053-4078-4a3f-9666-7fb85cf900d3",
+      "value": {
+        "actions": [ {
+          "agentUtterance": {
+            "text": "नमस्ते! मैं यहां आपकी मदद करने के लिए हूं। आपका क्या प्रश्न है?\n"
+          }
+        }, {
+          "userUtterance": {
+            "text": "फिक्स्ड डिपॉजिट क्या है?"
+          }
+        }, {
+          "agentUtterance": {
+            "text": "फिक्स्ड डिपॉजिट बैंक या पोस्ट ऑफिस में एक अकाउंट होता है जहां आप एक निश्चित अवधि के लिए पैसा जमा करते हैं और अवधि के अंत में ब्याज के साथ निकालते हैं। बैंक जमा तरलता और सुरक्षा प्रदान करते हैं, लेकिन रिटर्न कम हो सकता है।\n\nआप अगला सवाल पूछ सकते हैं या 'भाषा बदलो' कह सकते हैं।\n"
+          }
+        }, {
+          "userUtterance": {
+            "text": "निवेश बैंकिंग क्या है"
+          }
+        }, {
+          "agentUtterance": {
+            "text": "मुझे माफ़ करना, मुझे निवेश बैंकिंग के बारे में कोई जानकारी नहीं है। आप अगला सवाल पूछ सकते हैं या 'भाषा बदलो' कह सकते हैं।\n"
+          }
+        }, {
+          "userUtterance": {
+            "text": "एसआईपी क्या है?"
+          }
+        }, {
+          "agentUtterance": {
+            "text": "एसआईपी एक व्यवस्थित निवेश योजना है जो आपको हर महीने म्यूचुअल फंड योजनाओं में बहुत कम मात्रा में भी निवेश करने की अनुमति देती है। म्यूचुअल फंड कई निवेशकों से पैसा इकट्ठा करते हैं और कुल राशि को पेशेवर और पारदर्शी तरीके से बाजारों में निवेश करते हैं।\n\nआप अगला सवाल पूछ सकते हैं या 'भाषा बदलो' कह सकते हैं।\n"
+          }
+        } ],
+        "playbookInput": {
+          "precedingConversationSummary": "start",
+          "actionParameters": {
+          
+          }
+        },
+        "playbookOutput": {
+          "executionSummary": "end",
+          "actionParameters": {
+          
+          }
+        },
+        "id": "69899053-4078-4a3f-9666-7fb85cf900d3",
+        "etag": "687002da",
+        "displayName": "example_1",
+        "retrievalStrategy": "DEFAULT",
+        "tokenCount": 438,
+        "conversationState": "OUTPUT_STATE_OK",
+        "languageCode": "en"
+      }
+    }, {
+      "key": "7f9c36f7-7197-4141-ad0c-5c98396b3b9a",
+      "value": {
+        "actions": [ {
+          "userUtterance": {
+            "text": "बचत खाता कैसे खोलें"
+          }
+        }, {
+          "agentUtterance": {
+            "text": "बचत खाता खोलने के लिए, आपको एक खाता खोलने का फॉर्म भरना होगा, पासपोर्ट आकार का फोटो लगाना होगा, और पहचान और/या निवास का प्रमाण देना होगा। 10 रुपये से 2500 रुपये के बीच न्यूनतम जमा राशि की आवश्यकता हो सकती है। आप किसी भी बैंक या डाकघर में जा सकते हैं।\n\nआप अगला सवाल पूछ सकते हैं या 'भाषा बदलो' कह सकते हैं।\n"
+          }
+        } ],
+        "playbookInput": {
+          "precedingConversationSummary": "start",
+          "actionParameters": {
+          
+          }
+        },
+        "playbookOutput": {
+          "executionSummary": "end",
+          "actionParameters": {
+          
+          }
+        },
+        "id": "7f9c36f7-7197-4141-ad0c-5c98396b3b9a",
+        "etag": "687003e2",
+        "displayName": "5",
+        "retrievalStrategy": "DEFAULT",
+        "tokenCount": 199,
+        "conversationState": "OUTPUT_STATE_OK",
+        "languageCode": "hi"
+      }
+    } ]
+  }
+}
