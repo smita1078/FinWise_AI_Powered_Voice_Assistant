@@ -1,5 +1,5 @@
 
-# 📞 AI-Powered Multilingual Voice Bot (Dialogflow CX + Cloud Functions)
+# 📞 AI-Powered Multilingual Finance Voice Bot (Dialogflow CX + Cloud Functions)
 
 An AI-powered, multilingual voice bot built using **Dialogflow CX**, **Google Cloud Functions**, and **Cloud SQL**.
 The system supports **DTMF-based flows**, **AI conversational flows**, **scam reporting**, **bank branch lookup**, and an **NGO connect feature**, with all interactions logged for continuous system improvement.
